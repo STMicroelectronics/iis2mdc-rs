@@ -19,7 +19,7 @@ heapless = { version = "0.8", default-features = false }
 
 embedded-hal = "1.0.0"
 
-iis2mdc-rs = { path = "../../" }
+iis2mdc-rs = "1.0.0"
 st-mems-bus = "1.0.0"
 
 [[bin]]
