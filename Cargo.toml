@@ -1,6 +1,6 @@
 [package]
 name = "iis2mdc-rs"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 rust-version = "1.87.0"
 readme = "README.md"
@@ -9,17 +9,25 @@ categories = ["embedded", "no-std"]
 keywords = ["st", "mems", "magnetometer", "3-axis", "low-power"]
 repository = "https://github.com/STMicroelectronics/iis2mdc-rs"
 description = """
-    Platform-agnostic driver for the IIS2MDC ultra-low-power, 
+    Platform-agnostic driver for the IIS2MDC ultra-low-power,
     high-accuracy 3-axis digital magnetic sensor with I2C and SPI interfaces.
 """
 
+[lib]
+doctest = false
+
 [dependencies]
+bisync = "0.3.0"
 bitfield-struct = "0.11.0"
 embedded-hal = "1.0.0"
+embedded-hal-async = "1.0.0"
 derive_more = { version = "2.0.1", default-features = false, features = [ "try_from" ] }
-st-mems-bus = "1.0.1"
-st-mem-bank-macro = "1.0.0"
+st-mems-bus = "2.0.0"
+st-mem-bank-macro = "2.0.0"
 
 # By default the bit order is assumed ad Least Significant Bit.
 [features]
+default = ["async"]
+async = []
+blocking = []
 bit_order_msb = []

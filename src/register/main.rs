@@ -1,8 +1,10 @@
-use crate::BusOperation;
-use crate::{Error, Iis2mdc};
+use super::super::{
+    BusOperation, DelayNs, Error, Iis2mdc, RegisterOperation, SensorOperation, bisync,
+    register::OnState,
+};
+
 use bitfield_struct::bitfield;
 use derive_more::TryFrom;
-use embedded_hal::delay::DelayNs;
 
 use st_mem_bank_macro::{named_register, register};
 
@@ -65,7 +67,7 @@ pub enum Reg {
 /// The bit order for this struct can be configured using the `bit_order_msb` feature:
 /// * `Msb`: Most significant bit first.
 /// * `Lsb`: Least significant bit first (default).
-#[register(address = Reg::CfgRegA, access_type = Iis2mdc, generics = 2)]
+#[register(address = Reg::CfgRegA, access_type = "Iis2mdc<B, T, OnState>")]
 #[cfg_attr(feature = "bit_order_msb", bitfield(u8, order = Msb))]
 #[cfg_attr(not(feature = "bit_order_msb"), bitfield(u8, order = Lsb))]
 pub struct CfgRegA {
@@ -97,7 +99,7 @@ pub struct CfgRegA {
 /// The bit order for this struct can be configured using the `bit_order_msb` feature:
 /// * `Msb`: Most significant bit first.
 /// * `Lsb`: Least significant bit first (default).
-#[register(address = Reg::CfgRegB, access_type = Iis2mdc, generics = 2)]
+#[register(address = Reg::CfgRegB, access_type = "Iis2mdc<B, T, OnState>")]
 #[cfg_attr(feature = "bit_order_msb", bitfield(u8, order = Msb))]
 #[cfg_attr(not(feature = "bit_order_msb"), bitfield(u8, order = Lsb))]
 pub struct CfgRegB {
@@ -128,7 +130,7 @@ pub struct CfgRegB {
 /// The bit order for this struct can be configured using the `bit_order_msb` feature:
 /// * `Msb`: Most significant bit first.
 /// * `Lsb`: Least significant bit first (default).
-#[register(address = Reg::CfgRegC, access_type = Iis2mdc, generics = 2)]
+#[register(address = Reg::CfgRegC, access_type = "Iis2mdc<B, T, OnState>")]
 #[cfg_attr(feature = "bit_order_msb", bitfield(u8, order = Msb))]
 #[cfg_attr(not(feature = "bit_order_msb"), bitfield(u8, order = Lsb))]
 pub struct CfgRegC {
@@ -169,7 +171,7 @@ pub struct CfgRegC {
 /// The bit order for this struct can be configured using the `bit_order_msb` feature:
 /// * `Msb`: Most significant bit first.
 /// * `Lsb`: Least significant bit first (default).
-#[register(address = Reg::IntCtrlReg, access_type = Iis2mdc, generics = 2)]
+#[register(address = Reg::IntCtrlReg, access_type = "Iis2mdc<B, T, OnState>")]
 #[cfg_attr(feature = "bit_order_msb", bitfield(u8, order = Msb))]
 #[cfg_attr(not(feature = "bit_order_msb"), bitfield(u8, order = Lsb))]
 pub struct IntCtrlReg {
@@ -204,7 +206,7 @@ pub struct IntCtrlReg {
 /// The bit order for this struct can be configured using the `bit_order_msb` feature:
 /// * `Msb`: Most significant bit first.
 /// * `Lsb`: Least significant bit first (default).
-#[register(address = Reg::IntSourceReg, access_type = Iis2mdc, generics = 2)]
+#[register(address = Reg::IntSourceReg, access_type = "Iis2mdc<B, T, OnState>")]
 #[cfg_attr(feature = "bit_order_msb", bitfield(u8, order = Msb))]
 #[cfg_attr(not(feature = "bit_order_msb"), bitfield(u8, order = Lsb))]
 pub struct IntSourceReg {
@@ -241,7 +243,7 @@ pub struct IntSourceReg {
 /// The bit order for this struct can be configured using the `bit_order_msb` feature:
 /// * `Msb`: Most significant bit first.
 /// * `Lsb`: Least significant bit first (default).
-#[register(address = Reg::StatusReg, access_type = Iis2mdc, generics = 2)]
+#[register(address = Reg::StatusReg, access_type = "Iis2mdc<B, T, OnState>")]
 #[cfg_attr(feature = "bit_order_msb", bitfield(u8, order = Msb))]
 #[cfg_attr(not(feature = "bit_order_msb"), bitfield(u8, order = Lsb))]
 pub struct StatusReg {
@@ -275,7 +277,7 @@ pub struct StatusReg {
 ///
 /// This register group holds the hard-iron offset values used to compensate the magnetic sensor readings.
 /// The offsets are represented as a three-element array of 16-bit signed integers, corresponding to the X, Y, and Z axes respectively.
-#[named_register(address = Reg::OffsetXRegL, access_type = Iis2mdc, generics = 2)]
+#[named_register(address = Reg::OffsetXRegL, access_type = "Iis2mdc<B, T, OnState>")]
 pub struct OffsetXYZ {
     pub x: i16,
     pub y: i16,
@@ -286,7 +288,7 @@ pub struct OffsetXYZ {
 ///
 /// This register group contains the raw magnetic output data from the sensor.
 /// The data is represented as a three-element array of 16-bit signed integers, corresponding to the X, Y, and Z axes respectively.
-#[named_register(address = Reg::OutxLReg, access_type = Iis2mdc, generics = 2)]
+#[named_register(address = Reg::OutxLReg, access_type = "Iis2mdc<B, T, OnState>")]
 pub struct OutXYZ {
     pub x: i16,
     pub y: i16,
@@ -298,7 +300,7 @@ pub struct OutXYZ {
 /// This register holds the raw temperature measurement from the sensor as a 16-bit signed integer.
 /// The bit order can be configured via the `bit_order_msb` feature flag.
 /// The temperature value is accessible through the `temp_out` field.
-#[register(address = Reg::TempOutLReg, access_type = Iis2mdc, generics = 2)]
+#[register(address = Reg::TempOutLReg, access_type = "Iis2mdc<B, T, OnState>")]
 #[cfg_attr(feature = "bit_order_msb", bitfield(u16, order = Msb))]
 #[cfg_attr(not(feature = "bit_order_msb"), bitfield(u16, order = Lsb))]
 pub struct TempOutReg {
@@ -312,7 +314,7 @@ pub struct TempOutReg {
 /// This register holds the user-defined threshold value for the interrupt generator.
 /// The threshold is represented as a 16-bit signed integer.
 /// The bit order can be configured via the `bit_order_msb` feature flag.
-#[register(address = Reg::IntThsLReg, access_type = Iis2mdc, generics = 2)]
+#[register(address = Reg::IntThsLReg, access_type = "Iis2mdc<B, T, OnState>")]
 #[cfg_attr(feature = "bit_order_msb", bitfield(u16, order = Msb))]
 #[cfg_attr(not(feature = "bit_order_msb"), bitfield(u16, order = Lsb))]
 pub struct IntThsReg {
