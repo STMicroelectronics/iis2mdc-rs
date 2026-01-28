@@ -35,7 +35,7 @@ Add the driver to your `Cargo.toml` dependencies:
 
 ```toml
 [dependencies]
-iis2mdc-rs = "0.1.0"
+iis2mdc-rs = "2.0.0"
 ```
 
 Or, add it directly from the terminal:
@@ -46,9 +46,28 @@ cargo add iis2mdc-rs
 
 ## Usage
 
-Include the crate and its prelude
+By default, the create exposes the **asynchronous** API, and it could be included using:
 ```rust
-use iis2mdc_rs as iis2mdc;
+use iis2mdc_rs::asynchronous as iis2mdc;
+use iis2mdc::*;
+use iis2mdc::prelude::*;
+```
+
+### Blocking API (optional feature)
+
+To use the **blocking** API instead of the asynchronous one, disable default features and enable the `blocking` feature in your Cargo.toml
+```toml
+[dependencies]
+iis2mdc-rs = { version = "2.0.0", default-features = false, features = ["blocking"] }
+```
+or from the terminal:
+```sh
+cargo add iis2mdc-rs --no-default-features --features blocking
+```
+
+Then import the blocking API:
+```rust
+use iis2mdc_rs::blocking as iis2mdc;
 use iis2mdc::*;
 use iis2mdc::prelude::*;
 ```
